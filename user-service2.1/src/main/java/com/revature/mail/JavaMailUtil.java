@@ -17,7 +17,7 @@ import com.revature.entity.User;
 
 public class JavaMailUtil {
 	
-public static boolean sendMail(User user, String url) throws MessagingException {
+public static boolean sendMail(User user) throws MessagingException {
 		
 		//Configuring the properties fo the mail, we can put a key and a value to this properties
 		System.out.println("Preparing to send mail to: "+user.getEmail());
@@ -43,7 +43,7 @@ public static boolean sendMail(User user, String url) throws MessagingException 
 		});
 		
 		//Message is part of the API
-		Message message = prepareMessage(session, myAccountEmail, user, url);
+		Message message = prepareMessage(session, myAccountEmail, user);
 		
 		//Transport is part of the API
 		Transport.send(message);
@@ -52,7 +52,7 @@ public static boolean sendMail(User user, String url) throws MessagingException 
 		
 	}
 
-	private static Message prepareMessage(Session session, String myAccountEmail, User user, String url) {
+	private static Message prepareMessage(Session session, String myAccountEmail, User user) {
 		
 		
 		try {
@@ -60,8 +60,7 @@ public static boolean sendMail(User user, String url) throws MessagingException 
 			message.setFrom(new InternetAddress(myAccountEmail));
 			message.setRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
 			message.setSubject("Password Reset Request");
-			message.setText("To reset your password, click the link below:\n"+url);
-			//to set up html instead we use setContent
+			message.setText("Please find below your new password \n"+user.getPassword());
 //			String html = "<h1>This is an example using html </h1><br> <h2><b>Welcome to the Java mail API</b></h2>";
 //			message.setContent(html, "text/html");
 			return message;
