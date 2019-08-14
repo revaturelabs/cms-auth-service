@@ -3,11 +3,11 @@ package com.revature.controller;
 import java.util.UUID;
 
 import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +20,7 @@ import com.revature.entity.User;
 import com.revature.mail.JavaMailUtil;
 import com.revature.service.UserService;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/password")
 
@@ -43,33 +44,39 @@ public class ForgotPasswordController {
 	
 	//Here we send an email with the reset link
 	@PostMapping(value = "/forgot")
-	public String forgotPasswordEmail(@RequestBody User user, HttpServletRequest request) throws MessagingException {
+	public boolean forgotPasswordEmail(@RequestBody User user) throws MessagingException {
 		
 		//lookup user in the database by email
 		User userEmail = userService.getUserByEmail(user);
 		
 		if (userEmail == null) {
 			
-			return "User does not exist";
+			return false;
 		} else {
 
 			//Generate random 36-character string token for reset password
-			userEmail.setResetToken(UUID.randomUUID().toString());
+			User password = new User();
+			userEmail.setPassword((UUID.randomUUID().toString()));
+			password = userEmail;
 			
-			//Save token to the database
-			userService.createUser(userEmail);
-			System.out.println("Token saved with values "+userEmail);
+			if (JavaMailUtil.sendMail(password)) {
+				
+				//Encrypt new password
+				BCryptPasswordEncoder bc = new BCryptPasswordEncoder();
+				//set new password
+				userEmail.setPassword(bc.encode(password.getPassword()));
+				
+				//Save token to the database
+				userService.createUser(userEmail);
 			
-			//Creating the URL
-			String appUrl = request.getScheme() + "://" + request.getServerName()+ ":8011/api/reset?token="+userEmail.getResetToken();
-			System.out.println("This is the URL "+appUrl);
+				
+			}
 			
-			if (JavaMailUtil.sendMail(user, appUrl)) {
-				return "We sent an email to "+user.getEmail();
-			}				
+			return true;
 		}
 		
-		return "We sent an email to "+user.getEmail();
+		
+		
 	}
 	
 	

@@ -45,6 +45,7 @@ public class UserController {
 	@PostMapping(value="/login")
 	public User login(@RequestBody User user) {
 		User removePassword = userService.Authenticate(user);
+		System.out.println(removePassword);
 		User temp = new User(removePassword.getId(),removePassword.getEmail(),removePassword.getFname(),removePassword.getLname(),removePassword.getCreatedDate(),removePassword.getResetToken(),removePassword.getRole());
 		
 		return temp;	
